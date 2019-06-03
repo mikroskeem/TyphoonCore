@@ -45,6 +45,12 @@ type PluginMessageEvent struct {
 	Data    []byte
 }
 
+type PlayerLoginPluginResponseEvent struct {
+	Player     *Player
+	MessageId  int
+	Successful bool
+}
+
 func (c *Core) On(handler interface{}) {
 	typ := reflect.TypeOf(handler).In(0)
 	cb := EventCallback{handler, nil}

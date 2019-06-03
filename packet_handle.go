@@ -146,6 +146,81 @@ func (packet *PacketLoginStart) Write(player *Player) (err error) {
 	return
 }
 
+type PacketLoginPluginRequest struct {
+	MessageId int
+	Channel   string
+	Data      []byte
+}
+
+func (packet *PacketLoginPluginRequest) Id() (int, Protocol) {
+	return 0x04, V1_13
+}
+
+func (packet *PacketLoginPluginRequest) Read(player *Player, length int) (err error) {
+	return
+}
+
+func (packet *PacketLoginPluginRequest) Write(player *Player) (err error) {
+	err = player.WriteVarInt(packet.MessageId)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	err = player.WriteString(packet.Channel)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	err = player.WriteByteArray(packet.Data)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	return
+}
+
+func (packet *PacketLoginPluginRequest) Handle(player *Player) {
+	return
+}
+
+type PacketLoginPluginResponse struct {
+	MessageId  int
+	Successful bool
+	Data       []byte
+}
+
+func (packet *PacketLoginPluginResponse) Id() (int, Protocol) {
+	return 0x02, V1_13
+}
+
+func (packet *PacketLoginPluginResponse) Read(player *Player, length int) (err error) {
+	packet.MessageId, err = player.ReadVarInt()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	packet.Successful, err = player.ReadBool()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	// TODO: read remaining data maybe
+	return
+}
+
+func (packet *PacketLoginPluginResponse) Write(player *Player) (err error) {
+	return
+}
+
+func (packet *PacketLoginPluginResponse) Handle(player *Player) {
+	player.core.CallEvent(&PlayerLoginPluginResponseEvent{
+		Player:     player,
+		MessageId:  packet.MessageId,
+		Successful: packet.Successful,
+	})
+	return
+}
+
 var (
 	join_game = PacketPlayJoinGame{
 		EntityId:     0,
@@ -178,6 +253,10 @@ func (packet *PacketLoginStart) Handle(player *Player) {
 		setCompression := PacketSetCompression{config.Threshold}
 		player.WritePacket(&setCompression)
 		player.compression = true
+	}
+
+	if player.protocol >= V1_13 {
+		player.WritePacket(&PacketLoginPluginRequest{MessageId: 0, Channel: "velocity:player_info"})
 	}
 
 	success := PacketLoginSuccess{

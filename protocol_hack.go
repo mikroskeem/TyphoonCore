@@ -232,6 +232,10 @@ func initHacks() {
 		serverbound[V1_13][i] = serverbound[V1_12_2][i-10]
 	}
 
+	// Custom login packets for 1.13
+	clientbound[V1_13][0x04] = 0x04
+	serverbound[V1_13][0x02] = 0x02
+
 	// Hack 1.13.1
 	clientbound[V1_13_1] = clientbound[V1_13]
 	serverbound[V1_13_1] = serverbound[V1_13]

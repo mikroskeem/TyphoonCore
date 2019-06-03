@@ -1,4 +1,4 @@
-module TyphoonCore
+module github.com/mikroskeem/TyphoonCore
 
 go 1.12
 
